@@ -3,7 +3,182 @@ guid: 41c755ce6b9f7dd4c967a3f2cdacf6dd
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Oak Wood Natural Clean.002
+    second: {fileID: 2100000, guid: d91cd72d406fca04e922a7e9d0852c65, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: T_set_Stairs
+    second: {fileID: 2100000, guid: f49fe15aa78ebae4cabed8ac543b4d93, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: board_doc_1
+    second: {fileID: 2100000, guid: 9152106b64a89c64aa73c75533bccd52, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: board_doc_1.001
+    second: {fileID: 2100000, guid: 49b5e34feea6117489e4254e937bcc41, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: board_doc_2
+    second: {fileID: 2100000, guid: cc6aeb9722c1620429e280d63c3b0df3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: board_doc_2.001
+    second: {fileID: 2100000, guid: 26ea5c5aa526e6e49b6a18702e5808c5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: board_doc_3
+    second: {fileID: 2100000, guid: 42866c5d3bcd28047b64f8681c3a4498, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: board_doc_3.001
+    second: {fileID: 2100000, guid: 26217a152b6981f459622583a9334f9d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_1
+    second: {fileID: 2100000, guid: 64c7df3a8f485794e8b2f3647e524051, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_1.001
+    second: {fileID: 2100000, guid: e065dd65ca4b17a45bf940756c61de01, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_2
+    second: {fileID: 2100000, guid: 0a1a06415affeed48b319842b8d9913f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_2.001
+    second: {fileID: 2100000, guid: 6023753c9e8eb004db5101714c22b124, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_3
+    second: {fileID: 2100000, guid: 5b2704c33b456c044abcc676b9634df8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_3.001
+    second: {fileID: 2100000, guid: 22653e6f895b94f4a907f280ed47fa86, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_4
+    second: {fileID: 2100000, guid: 787ae0172bfc1704caaf8ea8f62a4e25, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paintings_4.001
+    second: {fileID: 2100000, guid: d4bdb486619fddb468341a216ded94dd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_1
+    second: {fileID: 2100000, guid: 155fcdbf3bd04204db3a26c87fe9d3ed, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_1.001
+    second: {fileID: 2100000, guid: c9ac00b3e53edd2429758f1828e4f2e5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_2
+    second: {fileID: 2100000, guid: a75c2dd0f1b63774bb4c4d46cbc28027, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_2.001
+    second: {fileID: 2100000, guid: 572c002f90335b04799fa93e6220b573, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_3
+    second: {fileID: 2100000, guid: 6f46731680e77be4093ac6195a66a557, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_3.001
+    second: {fileID: 2100000, guid: fe1c83518709dcb468bbd3aad3b32537, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_4
+    second: {fileID: 2100000, guid: 73ad8b39afae00444bd53c0a7af3e1ac, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_4.001
+    second: {fileID: 2100000, guid: df541e21f776aca4d8e3e2ee50271107, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_5
+    second: {fileID: 2100000, guid: d766309c5b818604fb262814e41d3aa0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_5.001
+    second: {fileID: 2100000, guid: 97dcbd43d36d74447b7d7db33d4b067d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_6
+    second: {fileID: 2100000, guid: 08e8b25a045dd7d45868fcf0038e9a7d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette_6.001
+    second: {fileID: 2100000, guid: 071f15ade0c673741b1cf757c15c411d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: rug_1
+    second: {fileID: 2100000, guid: 7e0251642c9021f4294e3713faf01911, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: rug_1.001
+    second: {fileID: 2100000, guid: 78f8f116069744643a9d51128c3db19a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: rug_2
+    second: {fileID: 2100000, guid: 40cf2dda0d4b9d34cb72d2458d70d003, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: screen
+    second: {fileID: 2100000, guid: e7a98bc36af28e24ca19d10f0bec0789, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: screen.001
+    second: {fileID: 2100000, guid: f1464914ae6c56a4c9abeec244866601, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: screen_off
+    second: {fileID: 2100000, guid: 455e4618ddfb10945b7877850e999980, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: screen_off.001
+    second: {fileID: 2100000, guid: d795540754d84a44eae1b6ba82e9ddfa, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

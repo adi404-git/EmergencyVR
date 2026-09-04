@@ -31,24 +31,7 @@ public class VRSubtitleManager : MonoBehaviour
 
     private Queue<string> lineQueue = new Queue<string>();
     private Coroutine activeRoutine;
-    [Header("VR Head Tracking Follow")]
-    [Tooltip("Target head camera to follow. If null, automatically finds Camera.main at Start.")]
-    public Transform headCamera;
     
-    [Tooltip("Local offset relative to the head camera (X: left/right, Y: up/down, Z: forward distance).")]
-    public Vector3 localOffset = new Vector3(0f, -0.15f, 1.4f);
-    
-    [Tooltip("How smoothly the UI follows head rotation (higher = faster).")]
-    public float followSpeed = 12f;
-
-    void Start()
-    {
-        // Auto-find main VR camera if not assigned
-        if (headCamera == null && Camera.main != null)
-        {
-            headCamera = Camera.main.transform;
-        }
-    }
 
     void Awake()
     {
@@ -138,20 +121,5 @@ public class VRSubtitleManager : MonoBehaviour
         activeRoutine = null;
         if (canvasGroup != null) canvasGroup.alpha = 0f;
     }
-    void LateUpdate()
-    {
-        if (headCamera == null)
-        {
-            if (Camera.main != null) headCamera = Camera.main.transform;
-            return;
-        }
-
-        // Calculate target position in front of the head
-        Vector3 targetPosition = headCamera.position + (headCamera.rotation * localOffset);
-        Quaternion targetRotation = headCamera.rotation;
-
-        // Smoothly interpolate position and rotation to prevent VR motion discomfort
-        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * followSpeed);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * followSpeed);
-    }
+    
 }
