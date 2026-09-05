@@ -31,6 +31,7 @@ public class EmergencyFlowManager : MonoBehaviour
         public ParticleSystem smokeParticles;
         public AudioSource sparkingWireAudio; // assign an AudioSource with a looping spark/electrical clip already set
     }
+    
     [Header("Pre-Emergency Hints")]
     [Tooltip("Ambient hints (small smoke wisps, sparking sounds) that hint at the coming emergency before it starts.")]
     public List<HintEvent> hints = new List<HintEvent>();
@@ -94,6 +95,17 @@ public class EmergencyFlowManager : MonoBehaviour
     {
         CurrentPhase = GamePhase.Emergency;
         EmergencyStartTime = Time.time;
+
+        // Find all dynamic fire nodes placed across the scene and ignite them
+        DynamicFireNode[] fireNodes = FindObjectsOfType<DynamicFireNode>();
+        foreach (var node in fireNodes)
+        {
+            if (node != null)
+            {
+                node.Ignite();
+            }
+        }
+
         OnEmergencyStarted?.Invoke();
     }
 

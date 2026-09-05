@@ -104,17 +104,44 @@ public class NPCFollower : MonoBehaviour
             else Debug.LogWarning($"{name}: No player assigned and no object tagged 'Player' found. Assign manually.");
         }
 
-        EnterIdleShouting();
+        // Stay silently Idle - no shouting, no detection - until the Emergency phase begins.
+        // If this NPC is spawned/enabled AFTER the emergency has already started (e.g. late
+        // scene load), catch up immediately instead of waiting for an event that already fired.
+        if (EmergencyFlowManager.Instance != null &&
+            EmergencyFlowManager.Instance.CurrentPhase == EmergencyFlowManager.GamePhase.Emergency)
+        {
+            EnterIdleShouting();
+        }
+    }
+
+    void OnEnable()
+    {
+        EmergencyFlowManager.OnEmergencyStarted += HandleEmergencyStarted;
+    }
+
+    void OnDisable()
+    {
+        EmergencyFlowManager.OnEmergencyStarted -= HandleEmergencyStarted;
+    }
+
+    void HandleEmergencyStarted()
+    {
+        // Only kicks off shouting if this NPC hasn't already been triggered some other way
+        // (e.g. late-join catch-up in Start(), or a designer manually calling EnterIdleShouting).
+        if (CurrentState == NPCState.Idle)
+            EnterIdleShouting();
     }
 
     void Update()
     {
-        if (CurrentState == NPCState.Rescued || player == null) return;
+        if (CurrentState == NPCState.Rescued || CurrentState == NPCState.Idle || player == null) return;
 
         float horizontalDist = GetHorizontalDistance();
 
-        // One-way transition: Idle/Shouting -> Following, once in range
-        if ((CurrentState == NPCState.Idle || CurrentState == NPCState.Shouting) && horizontalDist <= detectionDistance)
+        // One-way transition: Shouting -> Following, once in range.
+        // Idle is intentionally excluded here - an NPC that hasn't started shouting yet
+        // (i.e. before the emergency begins) must never start following early.
+        if (CurrentState == NPCState.Shouting && horizontalDist <= detectionDistance)
         {
             EnterFollowing();
         }
