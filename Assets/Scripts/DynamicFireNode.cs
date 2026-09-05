@@ -2,14 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// EmergencyVR - Pre-placed fire/smoke source. Place this script on an empty GameObject
-/// wherever a fire can start or spread to in your building, with fire/smoke ParticleSystems
-/// and a Light as children (already in the scene, just inactive - NOT instantiated at
-/// runtime, so there's zero Instantiate/GC cost when a fire starts).
+/// EmergencyVR - Pre-placed fire source. Point `fireVisualsParent` at a GameObject
+/// (e.g. your "VFX_Fire" object) whose DIRECT CHILDREN are individual pre-placed,
+/// pre-sized VFX prefab instances (VFX_Fire_01_Small_Simple, _Medium_Simple, etc.),
+/// ALL DISABLED by default in the Hierarchy.
 ///
-/// PERFORMANCE NOTE: All active nodes register themselves in a static list on Ignite and
-/// remove themselves on Extinguish/disable. FireScreenTint reads this list directly - no
-/// FindObjectsOfType calls anywhere, ever.
+/// This script does NOT scale, resize, or adjust intensity of anything - it simply
+/// enables those children one at a time as currentHealth rises (so the fire visually
+/// "grows" by more flames switching on, not by any single flame getting bigger), and
+/// disables them one at a time as the fire is extinguished.
+///
+/// PERFORMANCE: children are cached once in Awake. Enabling is just SetActive calls -
+/// negligible cost, no Instantiate, no per-frame allocations.
 /// </summary>
 public class DynamicFireNode : MonoBehaviour
 {
@@ -18,34 +22,22 @@ public class DynamicFireNode : MonoBehaviour
 
     [Header("Health / Growth")]
     [Range(0f, 100f)] public float currentHealth = 0f;
-    [Tooltip("Health gained per second while active and not being extinguished.")]
+    [Tooltip("Health gained per second while active. This also paces how quickly children turn on - higher growthRate = fire visually escalates faster.")]
     public float growthRate = 2f;
-    [Tooltip("Starting health when first ignited.")]
-    [Range(1f, 100f)] public float igniteStartHealth = 15f;
+    [Tooltip("Starting health when first ignited (should be low enough that only 1 child activates at first).")]
+    [Range(1f, 100f)] public float igniteStartHealth = 10f;
 
-    [Header("Visuals - VFX Prefab Roots")]
-    [Tooltip("Parent transform holding your fire VFX prefab instance (e.g. VFX_Fire_01_Small_Simple), pre-placed as a child of this node. Can contain any number of internal ParticleSystems - the whole thing scales together.")]
-    public Transform fireVisualRoot;
-    [Tooltip("Parent transform holding your smoke VFX prefab instance (e.g. VFX_Fire_01_Small_Simple_Smoke).")]
-    public Transform smokeVisualRoot;
-    public Light fireLight;
-
-    [Tooltip("Uniform scale applied to fireVisualRoot/smokeVisualRoot at health 0 and 100. Tune these by eye once the prefab is in place - a Small VFX prefab might range e.g. 0.5 to 1.3.")]
-    public float minVisualScale = 0.5f;
-    public float maxVisualScale = 1.4f;
-    public float maxLightRange = 8f;
-    public float maxLightIntensity = 3f;
+    [Header("Visuals - Pre-placed Children")]
+    [Tooltip("Parent object whose direct children are individual VFX prefab instances, all disabled by default. They activate one by one as health rises - no scaling, no intensity changes, just on/off.")]
+    public Transform fireVisualsParent;
 
     [Header("Trigger / Damage Radius")]
-    [Tooltip("SphereCollider whose radius scales with health - defines how close the player/extinguisher must be to interact with this fire.")]
+    [Tooltip("Fixed-size trigger collider the extinguisher/player detects. Set its radius directly in the Inspector - this script does not resize it.")]
     public SphereCollider triggerCollider;
-    public float minTriggerRadius = 0.5f;
-    public float maxTriggerRadius = 2.5f;
 
-    // --- cached nested particle systems, fetched once so we never call GetComponentsInChildren at runtime repeatedly ---
-    private ParticleSystem[] fireSystems;
-    private ParticleSystem[] smokeSystems;
-    private float baseLightIntensity;
+    // --- cached children, fetched once ---
+    private List<GameObject> fireChildren = new List<GameObject>();
+    private int lastActiveCount = -1; // tracks last applied count so we don't call SetActive redundantly every frame
 
     /// <summary>Static registry of EVERY placed fire node in the scene, regardless of state. Used to ignite all fires at once when the Emergency phase begins.</summary>
     public static readonly List<DynamicFireNode> AllNodes = new List<DynamicFireNode>();
@@ -58,20 +50,18 @@ public class DynamicFireNode : MonoBehaviour
         if (!AllNodes.Contains(this))
             AllNodes.Add(this);
 
-        if (fireVisualRoot != null)
+        if (fireVisualsParent != null)
         {
-            fireSystems = fireVisualRoot.GetComponentsInChildren<ParticleSystem>(true);
-            fireVisualRoot.localScale = Vector3.one * minVisualScale;
+            for (int i = 0; i < fireVisualsParent.childCount; i++)
+            {
+                GameObject child = fireVisualsParent.GetChild(i).gameObject;
+                fireChildren.Add(child);
+                child.SetActive(false); // enforce fully-off starting state regardless of what was left on in the Editor
+            }
         }
-        if (smokeVisualRoot != null)
+        else
         {
-            smokeSystems = smokeVisualRoot.GetComponentsInChildren<ParticleSystem>(true);
-            smokeVisualRoot.localScale = Vector3.one * minVisualScale;
-        }
-        if (fireLight != null)
-        {
-            baseLightIntensity = fireLight.intensity;
-            fireLight.enabled = false;
+            Debug.LogWarning($"{name}: DynamicFireNode has no fireVisualsParent assigned - this fire will never show anything visually.");
         }
     }
 
@@ -96,7 +86,7 @@ public class DynamicFireNode : MonoBehaviour
         currentHealth += growthRate * Time.deltaTime;
         currentHealth = Mathf.Clamp(currentHealth, 0f, 100f);
 
-        ApplyVisualScale();
+        UpdateActiveChildren();
     }
 
     /// <summary>Starts this fire. Safe to call multiple times - no-op if already active or extinguished.</summary>
@@ -107,57 +97,45 @@ public class DynamicFireNode : MonoBehaviour
         CurrentState = FireState.Active;
         currentHealth = igniteStartHealth;
 
-        PlayAll(fireSystems);
-        PlayAll(smokeSystems);
-        if (fireLight != null) fireLight.enabled = true;
-
-        ApplyVisualScale();
+        UpdateActiveChildren();
 
         if (!ActiveNodes.Contains(this))
             ActiveNodes.Add(this);
     }
 
-    static void PlayAll(ParticleSystem[] systems)
+    /// <summary>
+    /// Maps currentHealth (0-100) to how many of the pre-placed children should be
+    /// active right now, and only touches SetActive on the ones that actually need
+    /// to change state (cheap, no redundant calls every frame).
+    /// </summary>
+    void UpdateActiveChildren()
     {
-        if (systems == null) return;
-        for (int i = 0; i < systems.Length; i++)
-            if (systems[i] != null) systems[i].Play();
-    }
+        if (fireChildren.Count == 0) return;
 
-    static void StopAll(ParticleSystem[] systems)
-    {
-        if (systems == null) return;
-        for (int i = 0; i < systems.Length; i++)
-            if (systems[i] != null) systems[i].Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-    }
+        int targetActiveCount = Mathf.Clamp(
+            Mathf.CeilToInt((currentHealth / 100f) * fireChildren.Count),
+            0,
+            fireChildren.Count
+        );
 
-    void ApplyVisualScale()
-    {
-        float t = currentHealth / 100f;
-        float scale = Mathf.Lerp(minVisualScale, maxVisualScale, t);
+        if (targetActiveCount == lastActiveCount) return; // nothing changed, skip entirely
 
-        if (fireVisualRoot != null) fireVisualRoot.localScale = Vector3.one * scale;
-        if (smokeVisualRoot != null) smokeVisualRoot.localScale = Vector3.one * scale;
-
-        if (fireLight != null)
+        for (int i = 0; i < fireChildren.Count; i++)
         {
-            fireLight.range = Mathf.Lerp(0.5f, maxLightRange, t);
-            fireLight.intensity = Mathf.Lerp(baseLightIntensity, maxLightIntensity, t);
+            bool shouldBeActive = i < targetActiveCount;
+            if (fireChildren[i].activeSelf != shouldBeActive)
+                fireChildren[i].SetActive(shouldBeActive);
         }
 
-        if (triggerCollider != null)
-        {
-            triggerCollider.radius = Mathf.Lerp(minTriggerRadius, maxTriggerRadius, t);
-        }
+        lastActiveCount = targetActiveCount;
     }
 
     /// <summary>
-    /// Reduces health by dousePower * Time.deltaTime worth of "extinguishing power" -
-    /// call this every frame the extinguisher spray is hitting this node (pass
-    /// dousePower already multiplied by deltaTime, or raw per-second value - see
-    /// FireExtinguisher.cs for the exact call pattern used).
-    /// Returns true the exact frame this node becomes fully extinguished (health hits 0),
-    /// so the caller can fire objective-tracking logic exactly once.
+    /// Reduces health by dousePower worth of extinguishing power (pass a per-second
+    /// value multiplied by Time.deltaTime - see FireExtinguisher.cs for the exact
+    /// call pattern used). As health drops, children switch off in reverse order.
+    /// Returns true the exact frame this node becomes fully extinguished, so the
+    /// caller can fire objective-tracking logic exactly once.
     /// </summary>
     public bool Extinguish(float dousePower)
     {
@@ -168,23 +146,18 @@ public class DynamicFireNode : MonoBehaviour
         if (currentHealth <= 0f)
         {
             currentHealth = 0f;
-            ApplyVisualScale();
+            UpdateActiveChildren(); // will correctly switch every child off since target count = 0
             FinishExtinguish();
             return true;
         }
 
-        ApplyVisualScale();
+        UpdateActiveChildren();
         return false;
     }
 
     void FinishExtinguish()
     {
         CurrentState = FireState.Extinguished;
-
-        StopAll(fireSystems);
-        StopAll(smokeSystems);
-        if (fireLight != null) fireLight.enabled = false;
-
         ActiveNodes.Remove(this);
     }
 
@@ -197,8 +170,8 @@ public class DynamicFireNode : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
+        if (triggerCollider == null) return;
         Gizmos.color = new Color(1f, 0.4f, 0f, 0.4f);
-        float radius = triggerCollider != null ? triggerCollider.radius : maxTriggerRadius;
-        Gizmos.DrawWireSphere(transform.position, radius);
+        Gizmos.DrawWireSphere(transform.position, triggerCollider.radius);
     }
 }
